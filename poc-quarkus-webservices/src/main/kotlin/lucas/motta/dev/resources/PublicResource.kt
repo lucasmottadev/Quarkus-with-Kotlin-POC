@@ -11,8 +11,6 @@ import lucas.motta.dev.entities.Role
 import lucas.motta.dev.entities.UserEntity
 import lucas.motta.dev.repositories.UserRepository
 import lucas.motta.dev.services.TokenUtils
-import lucas.motta.dev.services.TokenUtils.generateTokenByCredentials
-import org.jose4j.jwt.JwtClaims
 
 
 data class Credentials(val username: String, val password: String)
@@ -46,7 +44,7 @@ class Test {
 
         userRepository.persist(newUser)
 
-        val token = generateTokenByCredentials(user.username, user.role)
+        val token = TokenUtils.generateTokenByCredentials(user.username, user.role)
 
         return Response.status(Response.Status.CREATED).entity(token).build()
 
@@ -59,7 +57,7 @@ class Test {
         val user = userRepository.findByUsername(credentials.username)
             ?: return Response.status(Response.Status.UNAUTHORIZED).build()
 
-        val token = generateTokenByCredentials(credentials.username, user.role.name)
+        val token = TokenUtils.generateTokenByCredentials(credentials.username, user.role.name)
         return Response.ok(token).build()
 
     }
@@ -77,7 +75,7 @@ class Test {
     @RolesAllowed("admin")
     @Produces(MediaType.TEXT_PLAIN)
     fun testAuthAdmin(): Response {
-        return Response.ok("Olá admin").build()
+        return Response.ok("Endpoint liberado apenas ao ADMIN").build()
     }
 
 }
