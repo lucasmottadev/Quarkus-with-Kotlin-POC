@@ -19,11 +19,11 @@ object TokenUtils {
             subject = username
             setClaim("role", roleString)
         }
-        val token = TokenUtils.generateTokenString(claims)
+        val token = generateTokenString(claims)
         return token
     }
 
-    fun generateTokenString(claims: JwtClaims): String {
+    private fun generateTokenString(claims: JwtClaims): String {
         val privateKey = readPrivateKey("/privateKey.pem")
         return generateTokenString(privateKey, "privateKey.pem", claims)
     }
@@ -31,15 +31,6 @@ object TokenUtils {
     private fun generateTokenString(
         privateKey: PrivateKey, kid: String, claims: JwtClaims
     ): String {
-        val currentTimeInSecs = currentTimeInSecs()
-
-        claims.setIssuedAt(NumericDate.fromSeconds(currentTimeInSecs.toLong()))
-        claims.setClaim(Claims.auth_time.name, NumericDate.fromSeconds(currentTimeInSecs.toLong()))
-
-        claims.claimsMap.forEach { (key, value) ->
-            println("\tAdded claim: $key, value: $value")
-        }
-
         return JsonWebSignature().apply {
             payload = claims.toJson()
             key = privateKey

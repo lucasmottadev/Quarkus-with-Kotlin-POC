@@ -1,26 +1,50 @@
 package lucas.motta.dev.resources
 
 import io.quarkus.security.Authenticated
+import io.smallrye.jwt.build.impl.JwtBuildUtils
 import jakarta.annotation.security.RolesAllowed
 import jakarta.inject.Inject
-import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
+import kotlinx.serialization.Serializable
 import lucas.motta.dev.entities.Role
+import lucas.motta.dev.entities.UserCreate
 import lucas.motta.dev.entities.UserEntity
 import lucas.motta.dev.repositories.UserRepository
 import lucas.motta.dev.services.TokenUtils
+import lucas.motta.dev.services.UserService
 
 
+@Serializable
 data class Credentials(val username: String, val password: String)
-data class UserCreate(val username: String, val password: String, val role: String)
+
 
 @Path("/api/auth")
-class Test {
+class MainResource {
 
     @Inject
     lateinit var userRepository: UserRepository
+
+    @Inject
+    lateinit var userService: UserService
+
+
+    //    Este endpoint é usado para criação de novos usuários para testar regras.
+    //    Ele lógicamente não seria público em uma api real
+    @Path("/test/create-user")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun testCreateUser(user: UserCreate): Response {
+
+
+        val token = userService.createUser(user) ?: return Response.status(Response.Status.BAD_REQUEST).build()
+
+        return Response.status(Response.Status.CREATED).entity(token).build()
+
+    }
+
 
     @Path("/create-user")
     @POST
@@ -28,23 +52,7 @@ class Test {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun createUser(user: UserCreate): Response {
-        val hasUser = userRepository.findByUsername(user.username)
-        if (hasUser != null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Usuário já existente")
-                .build()
-        }
-
-        val newUser = UserEntity().apply {
-            name = user.username
-            username = user.username
-            password = user.password
-            role = Role.valueOf(user.role)
-        }
-
-        userRepository.persist(newUser)
-
-        val token = TokenUtils.generateTokenByCredentials(user.username, user.role)
+        val token = userService.createUser(user) ?: return Response.status(Response.Status.BAD_REQUEST).build()
 
         return Response.status(Response.Status.CREATED).entity(token).build()
 
@@ -54,6 +62,7 @@ class Test {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun authenticate(credentials: Credentials): Response {
+
         val user = userRepository.findByUsername(credentials.username)
             ?: return Response.status(Response.Status.UNAUTHORIZED).build()
 
@@ -62,7 +71,6 @@ class Test {
 
     }
 
-    @Path("/auth")
     @Authenticated
     @GET
     @Produces(MediaType.TEXT_PLAIN)
@@ -70,7 +78,7 @@ class Test {
         return Response.ok("Endpoint autenticado").build()
     }
 
-    @Path("/auth/admin")
+    @Path("/admin")
     @GET
     @RolesAllowed("admin")
     @Produces(MediaType.TEXT_PLAIN)

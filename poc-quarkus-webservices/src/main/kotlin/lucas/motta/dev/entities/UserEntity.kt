@@ -5,6 +5,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import kotlinx.serialization.Serializable
 
 @Entity
 class UserEntity : PanacheEntity() {
@@ -28,6 +29,7 @@ class UserEntity : PanacheEntity() {
         }
     }
 }
+@Serializable
 enum class Role {
     ADMIN, USER, GUEST
 }

@@ -15,3 +15,16 @@ Desenvolver e testar webservices simples para entender melhor:
 
 ## Observação
 Este projeto tem caráter exploratório e não é voltado para produção.
+
+
+### Questões técnicas
+
+#### Login é baseado em regras de acesso, sendo:
+    ADMIN, USER, GUEST
+
+**ADMIN** : tem todas as permissões. Incluindo criaçaõ, deleção e afins.
+
+**USER** : tem acesso a apenas endpoints que requerem autenticação.
+
+**GUEST**: tem permissão apenas a endpoint sem nenhuma autenticação.
+
